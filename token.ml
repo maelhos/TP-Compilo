@@ -34,24 +34,26 @@ let rec tokenize (code : char list) (liste_tokens : token list) : token list =
   match code with
   | [] -> EOF::liste_tokens
   | ' '::q -> tokenize q liste_tokens
-  | '['::q -> tokenize q (RBRA :: liste_tokens)
-  | ']'::q -> tokenize q (LBRA :: liste_tokens)
-  | '('::q -> tokenize q (LPAR :: liste_tokens)
-  | ')'::q -> tokenize q (RPAR :: liste_tokens)
-  | '+'::q -> tokenize q (ADD :: liste_tokens)
-  | '-'::q -> tokenize q (SUB :: liste_tokens)
-  | '*'::q -> tokenize q (MUL :: liste_tokens)
-  | '/'::q -> tokenize q (DIV :: liste_tokens)
-  | ','::q -> tokenize q (COMMA :: liste_tokens)
+  | '['::q -> tokenize q (RBRA::liste_tokens)
+  | ']'::q -> tokenize q (LBRA::liste_tokens)
+  | '('::q -> tokenize q (LPAR::liste_tokens)
+  | ')'::q -> tokenize q (RPAR::liste_tokens)
+  | '+'::q -> tokenize q (ADD::liste_tokens)
+  | '-'::q -> tokenize q (SUB::liste_tokens)
+  | '*'::q -> tokenize q (MUL::liste_tokens)
+  | '/'::q -> tokenize q (DIV::liste_tokens)
+  | ','::q -> tokenize q (COMMA::liste_tokens)
   | t::q when isnumber t -> lexZ q (string_of_char t) liste_tokens
   | t::q when islowercasealpha t -> lexW q (string_of_char t) liste_tokens
   | _ -> failwith "invalid character used"
+
 and lexW (code : char list) (token : string) (liste_tokens : token list) : token list =
   match code with
   | [] -> EOF::(VAR token)::liste_tokens
   | t::q when islowercasealpha t -> lexW q (token ^ (string_of_char t)) liste_tokens
   | t::_ when isspecial t -> tokenize code ((VAR token)::liste_tokens)
   | _ -> failwith "invalid argument name"
+
 and lexZ (code : char list) (token : string) (liste_tokens : token list) : token list =
   match code with
   | [] -> EOF::(CONST (int_of_string token))::liste_tokens
@@ -62,8 +64,6 @@ and lexZ (code : char list) (token : string) (liste_tokens : token list) : token
 
 let lex (code: string) : token list =
   List.rev (tokenize (explode code) []);;
-
-
 
 (* -- fonctions d'affichage -- *)
 let token_to_string (t : token) : string =
