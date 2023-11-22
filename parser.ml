@@ -1,59 +1,60 @@
 
-let parse (tl: Token.token list) : Ast.ast:
-  let ast1, tkns = parseS tl in
-  match tkns with
-  | [Token.EOF] -> ast1
-  | failwith "Erreur de parsing, il reste des symboles non parsé"
-
 let rec parseS (tl: Token.token list) : Ast.ast * Token.token list =
   match tl with
-  | RBRA::l1 -> let strings, tl1 = parseF l1 in (
-    let assoc_string = List.mapi (fun i str -> (str, i)) strings in
+  | LBRA::l1 -> let strings, tl1 = parseJ l1 in (
+    let mll = List.length strings - 1 in
+    let assoc_string = List.mapi (fun i str -> (str, mll - i)) strings in
     match tl1 with
-    | LBRA::l2 -> let ast1, tl2 = parseE l2 assoc_string in (ast1 ,tl2)
-    | _ -> failwith "Erreur de parsing"
+    | RBRA::l2 -> parseE l2 assoc_string
+    | _ -> failwith "Erreur de parsing S"
   )
-  | _ -> failwith "Erreur de parsing"
+  | _ -> failwith "Erreur de parsing S"
 
-and parseF (tl: Token.token list) : string list * Token.token list =
-  let rec auxF (tl: Token.token list) (sl: stringlist): string list * Token.token list =
+and parseJ (tl: Token.token list) : string list * Token.token list =
+  let rec auxF (tl: Token.token list) (sl: string list) : string list * Token.token list =
     match tl with
-    | (Token.VAR s)::t -> aux t (s::sl)
+    | (Token.VAR s)::t -> auxF t (s::sl)
     | Token.COMMA::(Token.VAR s)::t -> auxF t (s::sl)
-    | Token.LBRA::t -> (sl, l)
-    | _ -> failwith "Erreur de parsing"
+    | Token.RBRA::_ -> (sl, tl)
+    | _ -> failwith "Erreur de parsing J"
   in auxF tl []
 
 and parseE (tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list =
   let _ast, sl = parseT tl args in
   let ast_left = ref _ast in
   let rec auxE (tl: Token.token list) : Ast.ast * Token.token list =
-    match sl with
+    match tl with
     | Token.ADD::t -> let ast_right, sl2 = parseT t args in 
       ast_left := Ast.Add (!ast_left, ast_right); auxE sl2
     | Token.SUB::t -> let ast_right, sl2 = parseT t args in 
       ast_left := Ast.Sub (!ast_left, ast_right); auxE sl2
-    | _ -> (!ast_left, sl)
-  in auxE tl
+    | _ -> (!ast_left, tl)
+  in auxE sl
 
 and parseT (tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list =
   let _ast, sl = parseF tl args in
   let ast_left = ref _ast in
   let rec auxT (tl: Token.token list) : Ast.ast * Token.token list =
-    match sl with
+    match tl with
     | Token.MUL::t -> let ast_right, sl2 = parseF t args in 
-      ast_left := Ast.Add (!ast_left, ast_right); auxT sl2
+      ast_left := Ast.Mul (!ast_left, ast_right); auxT sl2
     | Token.DIV::t -> let ast_right, sl2 = parseF t args in 
-      ast_left := Ast.Sub (!ast_left, ast_right); auxT sl2
-    | _ -> (!ast_left, sl)
-  in auxT tl
+      ast_left := Ast.Div (!ast_left, ast_right); auxT sl2
+    | _ -> (!ast_left, tl)
+  in auxT sl
 and parseF (tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list =
   match tl with
-  | (Token.CONST n)::tl -> Ast.Imm (n, tl)
-  | (Token.VAR str)::tl -> Ast.Arg ((List.assoc str args), tl)
-  | Token.LPAR::tl -> let ast1, sl = parseE tl args in (
-    match sl with
+  | (Token.CONST n)::sl -> (Ast.Imm n, sl)
+  | (Token.VAR str)::sl -> (Ast.Arg (List.assoc str args), sl)
+  | Token.LPAR::sl -> let ast1, sl1 = parseE sl args in (
+    match sl1 with
     | Token.RPAR::tl -> (ast1, tl)
-    | _ -> failwith "parenthèse non fermée"
+    | _ -> failwith "parenthèse non fermée F"
   )
-  | _ -> failwith "Erreur de parser";;
+  | _ -> failwith "Erreur de parser F";;
+
+  let parse (tl: Token.token list) : Ast.ast =
+    let ast1, tkns = parseS tl in
+    match tkns with
+    | [EOF] -> ast1
+    | _ -> failwith "Erreur de parsing, il reste des symboles non parsé"
