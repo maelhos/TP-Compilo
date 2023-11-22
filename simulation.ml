@@ -12,13 +12,16 @@
   \BigSigma = {+, -, *, /, \bold,,[, ], (, )} \cup \mathbb Z \cup L
   V = {S, E, F}
   R : S -> [ F ] E
-      F -> F,F | x \in W 
-      E ->  E + E
+      F -> \epsilon | F W 
+      E ->  T
+        | E + E
         | E - E
-        | E * E
+      T -> F
         | E / E
+        | E * E
+      F -> \mathbb Z
+        | W
         | (E)
-        | x \in W
 
 *)
 
