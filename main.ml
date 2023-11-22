@@ -7,7 +7,7 @@ let tokens2 = Token.lex test_code2;;
 
 print_string "1. Token test :\n";;
 Token.print_tokenlist tokens;;
-Token.print_tokenlist (Token.lex "[ x ] x * 9");;
+Token.print_tokenlist tokens2;;
 
 (* 2. ///////////////////////////////// AST ///////////////////////////////// *)
 (* exemples :
@@ -34,15 +34,28 @@ let ast4 = Parser.parse tokens2;;
 Ast.print_ast ast4;;
 print_newline ();;
 
-(* 4. ///////////////////////////////// Assembler ///////////////////////////////// *)
+(* 4. ///////////////////////////////// Optimisation ///////////////////////////////// *)
 print_string "\n4. Assember test :\n";;
 
-let asm = Assembler.assemble ast4;;
+let ast_opti = Optimiser.opti_constants ast4;;
+Ast.print_ast ast_opti;;
+print_newline ();;
+
+(* 5. ///////////////////////////////// Assembler ///////////////////////////////// *)
+print_string "\n4. Assember test :\n";;
+
+let asm = Assembler.assemble ast_opti;;
 Instr.print_prgm asm;;
 print_newline ();;
 
-(* 4. ///////////////////////////////// Compilation ///////////////////////////////// *)
+(* 6. ///////////////////////////////// Compilation ///////////////////////////////// *)
 print_string "\n6. Final Compile test :\n";;
 let prgm = Compiler.compile test_code2;;
 Instr.print_prgm prgm;;
+print_newline ();;
+
+(* 7. ///////////////////////////////// Simulation ///////////////////////////////// *)
+print_string "\n7. Simulation :\n";;
+
+print_int (Simulation.simulate prgm [| 5; 2; 4; 3|]);;
 print_newline ();;

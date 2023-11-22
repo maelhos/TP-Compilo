@@ -17,4 +17,4 @@ let print_instr (i: t) : unit =
   | DI -> print_string "DI";;
 
 let print_prgm (prgm: t list) : unit = 
-  List.iter (fun a -> print_instr a; print_newline ()) prgm;;
+  print_char '['; List.iter (fun a -> print_instr a; print_string ", ") prgm; print_char ']';;
