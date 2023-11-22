@@ -15,7 +15,7 @@ let islowercasealpha = function
   | _ -> false;;
 
 (* --- Le lexer --- *)
-let rec explode code =
+let rec explode (code: string) : char list =
   (* Entree :
       Une chaine de caracteres representant une fonction dans le langage.
      Sortie :
@@ -60,8 +60,8 @@ and lexZ (code : char list) (token : string) (liste_tokens : token list) : token
   | _ -> failwith "invalid number";;
 
 
-let lex (code:char list) : token list =
-  List.rev (tokenize code []);;
+let lex (code: string) : token list =
+  List.rev (tokenize (explode code) []);;
 
 
 

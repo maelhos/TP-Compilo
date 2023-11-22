@@ -1,4 +1,4 @@
 
-Token.print_tokenlist (Token.lex (Token.explode "[ xaxa, y ] xaxa + y * (xaxa - y)"));;
+Token.print_tokenlist (Token.lex "[ xaxa, y ] xaxa + y * (xaxa - y)");;
 print_newline ();;
-Token.print_tokenlist (Token.lex (Token.explode "[ x ] x * 9"));;
+Token.print_tokenlist (Token.lex "[ x ] x * 9");;
