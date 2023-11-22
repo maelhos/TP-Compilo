@@ -17,15 +17,31 @@ let ast1 = Div(Add(Arg 0, Arg 1), Imm 2);;
 *)
 let ast2 = Add(Arg 0, Mul(Imm 2, Imm 5));;
 
+
+(* Erreur associee a la non-implementation : *)
+exception CompilerError of string;;
+
+
+(* --- Le lexer --- *)
+let explode code =
+        (* Entree :
+            Une chaine de caracteres representant une fonction dans le langage.
+           Sortie :
+            Le tableau de caracteres associe a la chaine.
+           *)
+        raise (CompilerError "Question1 : todo");;
+
+
 let tokenize code =
         (* Entree :
             Une chaine de caracteres representant une fonction dans le langage.
            Sortie :
             Une liste de tokens associes au code.
-           *);;
+           *)
+        raise (CompilerError "tokenizer : todo");;
 
 
-exception CompilerError of string;;
+
 
 let pass1 code =
         (* Entree :
