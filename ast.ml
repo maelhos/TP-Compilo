@@ -19,3 +19,37 @@ let ast2 = Add(Arg 0, Mul(Imm 2, Imm 5));;
 
 (* Erreur associee a la non-implementation : *)
 exception CompilerError of string;;
+
+
+
+let rec print_ast (arbre: ast) : unit =
+   match arbre with
+   | Imm x -> print_int x
+   | Arg x -> print_string "arg["; print_int x; print_string "]"
+   | Add(x,y) -> print_ast x; print_char '+'; print_ast y
+   | Sub(x,y) -> begin match y with
+                | Imm _ | Arg _ -> print_ast x; print_char '-'; print_ast y
+                | _ -> print_ast x; print_char '-'; print_char '('; print_ast y; print_char ')'
+   end
+   | Mul(x,y) -> begin match x with
+                | Imm _ | Arg _ -> print_ast x
+                |_ -> print_char '('; print_ast x; print_char ')';
+                print_char '*';
+                match y with
+                | Imm _ | Arg _ -> print_ast y
+                |_ -> print_char '('; print_ast y; print_char ')'
+   end
+   | Div(x,y) -> begin match x with
+                | Imm _ | Arg _ -> print_ast x
+                |_ -> print_char '('; print_ast x; print_char ')';
+                print_char '/';
+                match y with
+                | Imm _ | Arg _ -> print_ast y
+                |_ -> print_char '('; print_ast y; print_char ')'
+   end;;
+    
+
+print_ast ast1;;
+print_newline ();;
+print_ast ast2;;
+print_newline ();;
