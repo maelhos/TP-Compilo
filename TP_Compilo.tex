@@ -1,0 +1,193 @@
+\documentclass[12pt,letterpaper,onecolumn]{exam}
+\usepackage{graphicx} % Required for inserting images
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{mathptmx}
+\usepackage{mathrsfs}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{empheq}
+\usepackage{listings}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{textcomp}
+\usepackage{minted}
+\usepackage[scaled]{beramono}
+
+\makeatletter
+\def\@maketitle{%
+  \newpage
+%  \null% DELETED
+%  \vskip 2em% DELETED
+  \begin{center}%
+  \let \footnote \thanks
+    {\LARGE \@title \par}%
+    \vskip 1.5em%
+    {\large
+      \lineskip .5em%
+      \begin{tabular}[t]{c}%
+        \@author
+      \end{tabular}\par}%
+    \vskip 1em%
+    {\large \@date}%
+  \end{center}%
+  \par
+  \vskip 1.5em}
+\makeatother
+\sffamily
+
+\usepackage{geometry}
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=10mm,
+ top=20mm,
+ }
+
+\title{TP Compilateur}
+\date{}
+\begin{document}
+\maketitle
+
+L'objectif du TP est de créer un compilateur pour un langage de programmation simple : c'est-à-dire, dans ce cas, de passer de fonctions simples calculant des expressions mathématiques vers un assembleur simplifié. Les expressions du langage suivent la grammaire formelle :
+\begin{itemize}
+    \item $G=(\Sigma, V, S, R)$;
+    \item $L=\{a,b,c,...,z\}$;
+    \item $W=L^+$;
+    \item $\Sigma=\{+,-,*,/,(,),[,]\}\bigcup \mathbb{Z}\bigcup L\bigcup\{,\}$;
+    \item $V=\{S, E, F\}$;
+    \item où les règles $R$ sont les suivantes :
+    \begin{itemize}
+        \item $S \rightarrow [ J ] E$
+        \item $J \rightarrow \epsilon | F, W$
+        \item $E \rightarrow T | E + E | E - E$
+        \item $T \rightarrow F | E / E | E * E$
+        \item $F \rightarrow \mathbb{Z} | W | (E)$
+    \end{itemize}
+\end{itemize}
+Ainsi, $S$ dénote les fonctions, $F$ dénote les arguments de fonctions, $E$ et $T$ dénotent les opérations mathématiques du langage et ont été construits de manière à avoir, comme on le voudrait intuitivement, une hiérarchie des opérations.
+
+\section{Analyse Lexicale, le Tokenizeur}
+La tokenisation lexicale est la conversion d'un texte en une suite de \textbf{tokens lexicaux} sémantiquement ou syntaxiquement significatifs, appartenant à des catégories définies par un programme appelé un "lexeur". Ici, l'ensemble des catégories sera défini par un type somme en OCaml qui sera le suivant :
+\begin{minted}[fontsize=\small]{ocaml}
+type token =
+  | ADD | SUB | MUL | DIV | LPAR | RPAR | RBRA | LBRA
+  | VAR of string
+  | CONST of int
+  | EOF
+  | COMMA;;
+\end{minted}
+Ce qui signifie que notre langage pourra performer des additions, des soustractions, des multiplications, des divisions. De plus, des parenthesages (dénotés par LPAR et RPAR). L'objectif est de pouvoir implémenter des fonctions, c'est pour cela qu'on a rajouté des crochets qui dénotent la déclaration des arguments.\\
+On a de plus ajouté un \textbf{token} dénotant les constantes qui sont des variables "immédiates" (des nombres), et un \textbf{token} dénotant les arguments de la fonction qui seront d'ailleurs délimités par des virgules (COMMA). Pour simplifier les tâches suivantes, on rajoute un \textbf{token} "end of file" (EOF).
+\begin{questions}
+\question Écrire une fonction : 
+\begin{minted}[fontsize=\small]{ocaml}
+let rec explode(code: string) : char list;;
+\end{minted}
+qui prend en entrée une chaine de caractères et renvoie le tableau de caractères associé à cette dernière.
+
+\question En remarquant que les arguments \textbf{doivent} être dénotés par des chaines de lettres, écrire des fonctions :
+\begin{minted}[fontsize=\small]{ocaml}
+let rec tokenize(code: char list) (liste_tokens: token list) : token list
+and lexW(code: char list) (token: string) (liste_tokens: token list)  : token list
+and lexZ(code: char list) (token: string) (liste_tokens: token list)  : token list;;
+\end{minted}
+qui implémentent respectivement la mise sous forme de tokens de la liste de caractères \textbf{code}, des arguments (W pour words), et des valeurs immédiates (Z pour dénoter $\mathbb{Z}$).
+
+\question En déduire une fonction :
+\begin{minted}[fontsize=\small]{ocaml}
+let lex(code: string) : token list;;
+\end{minted}
+Qui effectue la mise sous forme de tokens d'une fonction du langage, prise en argument en une chaine de caractères.
+\end{questions}
+
+\section{Analyse syntaxique, le Parser}
+L'analyse syntaxique ou \textbf{parsing}, est le procédé d'analyse d'une chaine de caractères, selon les règles d'une grammaire formelle. Les règles de la grammaire formelle du langage ont été définies plus haut. Pour cela, nous utiliserons la structure de donnée d'Arbres de Syntaxe Abstraite, \textbf{AST} (Abstract Syntax Tree en anglais) qui sont des structures utilisées massivement dans les compilateurs pour représenter la structure d'un code. Ces structures servent à une représentation intermédiaire du programme à travers plusieurs étapes de compilations requises.\\
+Un exemple d'\textbf{AST} (dénotant $3+2*4$) :
+\begin{center}
+\begin{tikzpicture}
+\node {+}
+child {node {x}}
+child {node {*}
+child {node {2}}
+child {node {4}}
+};
+\end{tikzpicture}
+\end{center}
+
+L'objectif de cette partie est donc de passer d'une liste de \textbf{tokens} construite dans la première partie à un \textbf{AST}.\\
+On définit ainsi le type :
+\begin{minted}[fontsize=\small]{ocaml}
+type ast =
+  | Imm of int (* valeur immediate *)
+  | Arg of int (* reference au nieme argument *)
+  | Add of ast * ast (* addition des deux sous-arbres *)
+  | Sub of ast * ast (* soustraction des deux sous-arbres *)
+  | Mul of ast * ast (* multiplication des deux sous-arbres *)
+  | Div of ast * ast (* division des deux sous-arbres *);;
+\end{minted}
+
+\begin{questions}
+    \question Écrire des fonctions :
+    \begin{minted}[fontsize=\footnotesize]{ocaml}
+let rec parseS(tl: Token.token list) : Ast.ast * Token.token list;;
+let rec parseJ(tl: Token.token list) : string list * Token.token list;;
+let rec parseE(tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list;;
+let rec parseT(tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list;;
+let rec parseF(tl: Token.token list) (args: (string * int) list) : Ast.ast * Token.token list;;
+    \end{minted}
+    qui réalisent l'analyse syntaxique pour chacun des symboles de la grammaire.
+
+    \question En déduire une fonction :
+    \begin{minted}[fontsize=\footnotesize]{ocaml}
+let parse(tl: Token.token list) : Ast.ast
+    \end{minted}
+    qui réalise le \textbf{parsing} d'une liste de \textbf{tokens} tl.
+\end{questions}
+
+\section{Optimisation : Simplifications d'ASTs}
+Remarquons que l'\textbf{AST} produit dans les questions précédentes est simplifiable pour des cas de calculs avec des valeurs constantes comme cela était le cas pour le sous-arbre droit de l'exemple partie 2.
+\begin{questions}
+    \question Écrire une fonction :
+    \begin{minted}[fontsize=\footnotesize]{ocaml}
+let rec opti_constants(ast: Ast.ast) : Ast.ast;;
+    \end{minted}
+    qui simplifie l'\textbf{AST} passé en argument dans le cas d'opérations entre valeurs constantes.
+\end{questions}
+
+\section{Simulation d'assemblage}
+L'\textbf{assemblage} est une phase de la compilation qui consiste à transformer du code assembleur en fichier binaire. L'objectif ici est de simuler un pseudo-assembleur muni de deux registres R0 et R1 et des instructions suivantes :
+\begin{verbatim}
+IM n : charge la valeur constante n dans R0
+AR n : charge le n-ieme argument dans R0
+SW : echange les valeurs contenues dans les 2 registres
+PU : met la valeur contenue dans R0 sur la pile
+PO : retire un element de la pile et le stocke dans R0
+AD : ajoute R1 a R0 et met le resultat dans R0
+SU : soustrait R1 de R0 et met le resultat dans R0
+MU : multiplie R0 par R1 et met le resultat dans R0
+DI : divise R0 par R1 et met le resultat dans R0
+\end{verbatim}
+Pour cela, on va traduire les données de notre \textbf{AST} en ce pseudo-assembleur puis interpréter chacune des lignes de la liste d'instructions produite précédemment.
+\begin{questions}
+    \question Écrire une fonction :
+    \begin{minted}[fontsize=\footnotesize]{ocaml}
+let assemble(ast: Ast.ast) : Instr.t list;;
+    \end{minted}
+    qui transforme l'\textbf{AST} en une liste d'instructions assembleur performant les mêmes opérations et renvoyant le résultat dans R0.
+    \question Écrire une fonction :
+    \begin{minted}[fontsize=\footnotesize]{ocaml}
+let simulate(prgm: Instr.t list) (args: int array) : int;;
+    \end{minted}
+    où args représente les valeurs que l'on veut assigner à chaque argument de la fonction lors de l'exécution.
+\end{questions}
+
+\begin{center}
+    ----- Fin du TP! -----
+\end{center}
+
+\end{document}
+
