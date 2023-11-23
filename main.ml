@@ -1,6 +1,7 @@
 
 let test_code1 = "[ xaxa, y ] xaxa + y * (xaxa - y)";;
 let test_code2 = "[ x, y, z, t ] x * y / z + 1 / t - 77*y + 17 * (2 + 5 - 7 * 2*y)";;
+let test_codeez = "[ x, y ] x + y * x";;
 (* 1. On reprint post-lexage, on doit donc retrouver la même chose aux espaces près*)
 let tokens = Token.lex test_code1;;
 let tokens2 = Token.lex test_code2;;
@@ -50,7 +51,7 @@ print_newline ();;
 
 (* 6. ///////////////////////////////// Compilation ///////////////////////////////// *)
 print_string "\n6. Final Compile test :\n";;
-let prgm = Compiler.compile test_code2;;
+let prgm = Compiler.compile test_codeez;;
 Instr.print_prgm prgm;;
 print_newline ();;
 

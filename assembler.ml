@@ -39,8 +39,7 @@ let assemble (ast: Ast.ast) : Instr.t list =
       ret := op::!ret;
 
       if not ctx_free then(
-        (if aleft then
-          ret := Instr.SW::!ret);
+        ret := Instr.SW::!ret;
         ret := Instr.PO::!ret;
         (if aleft then
           ret := Instr.SW::!ret);
